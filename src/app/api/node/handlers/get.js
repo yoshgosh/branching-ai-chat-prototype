@@ -13,6 +13,7 @@ export async function handleGet(id) {
         // レスポンス用の形式に変換
         const nodes = {
             [node.id]: {
+                id: node.id,
                 parent_id: node.parent_id,
                 question: node.question,
                 answer: node.answer,

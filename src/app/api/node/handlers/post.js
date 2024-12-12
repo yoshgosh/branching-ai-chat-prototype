@@ -60,6 +60,7 @@ export async function handlePost(head, question) {
 
         const nodes = {
             [newId]: {
+                id: newId,
                 parent_id: head,
                 question,
                 answer,
