@@ -2,19 +2,14 @@ import { runQuery } from '../../db';
 
 export async function handleGet() {
     try {
-        // データベースから全ノードを取得
-        const rows = await runQuery('SELECT * FROM nodes');
+        const rows = await runQuery('SELECT * FROM nodes ORDER BY id DESC');
 
-        // データを指定形式に変換
-        const nodes = rows.reduce((acc, row) => {
-            acc[row.id] = {
-                id: row.id,
-                parent_id: row.parent_id,
-                question: row.question,
-                answer: row.answer,
-            };
-            return acc;
-        }, {});
+        const nodes = rows.map(row => ({
+            id: row.id,
+            parentId: row.parent_id,
+            question: row.question,
+            answer: row.answer,
+        }));
 
         return { status: 200, body: { nodes } };
     } catch (error) {
@@ -22,4 +17,3 @@ export async function handleGet() {
         return { status: 500, body: { error: 'Database error' } };
     }
 }
-

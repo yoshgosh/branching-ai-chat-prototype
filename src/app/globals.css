@@ -6,3 +6,66 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: #f3f4f6;
 }
+
+.interactive-tree .node-item {
+  padding: 10px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  margin-bottom: 5px;
+}
+
+.interactive-tree .node-item.head-node {
+  background-color: #f0f8ff;
+}
+
+.interactive-tree .node-item.visible-node {
+  border-color: #007bff;
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.chat-messages .chat-node {
+  margin-bottom: 10px;
+}
+
+.chat-messages .chat-node.activated-node {
+  border: 2px solid #007bff;
+  background-color: #e6f7ff;
+}
+
+.chat-input {
+  display: flex;
+  padding: 10px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 5px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.chat-input button {
+  padding: 5px 10px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chat-input button:hover {
+  background-color: #0056b3;
+}

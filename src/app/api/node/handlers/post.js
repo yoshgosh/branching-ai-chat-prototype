@@ -58,14 +58,12 @@ export async function handlePost(head, question) {
             [head, question, answer]
         );
 
-        const nodes = {
-            [newId]: {
+        const nodes = [{
                 id: newId,
-                parent_id: head,
+                parentId: head,
                 question,
                 answer,
-            },
-        };
+            }];
 
         return {
             status: 201,

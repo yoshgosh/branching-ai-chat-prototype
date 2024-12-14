@@ -2,47 +2,48 @@
 
 import React, { useState } from "react";
 
-const Chat = ({ messages, onSubmit }) => {
-    const [input, setInput] = useState("");
+const Chat = ({ activeNodes, headNodeId, nodeIdToActivate, onScroll, onSubmit }) => {
+    const [inputValue, setInputValue] = useState("");
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (input.trim()) {
-            onSubmit(input);
-            setInput("");
+    const handleScroll = (event) => {
+        if (onScroll) {
+            const visibleNodeId = event.target.dataset.nodeId; // スクロールイベントから可視ノードを取得
+            onScroll(visibleNodeId);
+        }
+    };
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (inputValue.trim() && onSubmit) {
+            onSubmit(inputValue.trim());
+            setInputValue("");
         }
     };
 
     return (
-        <div className="p-4 flex flex-col h-full">
-            <div className="flex-1 overflow-y-auto bg-gray-100 p-4 rounded-lg">
-                {messages.map((msg, index) => (
+        <div className="chat">
+            <div className="chat-messages" onScroll={handleScroll}>
+                {Array.from(activeNodes.values()).map((node) => (
                     <div
-                        key={index}
-                        className={`mb-2 p-2 rounded-lg ${
-                            msg.type === "user"
-                                ? "bg-blue-100 text-right"
-                                : "bg-gray-200"
+                        key={node.id}
+                        className={`chat-node ${
+                            node.id === nodeIdToActivate ? "activated-node" : ""
                         }`}
+                        data-node-id={node.id}
                     >
-                        {msg.text}
+                        <strong>{node.label || `Node ${node.id}`}</strong>
+                        <p>{node.question || "No content available."}</p>
                     </div>
                 ))}
             </div>
-            <form onSubmit={handleSubmit} className="flex mt-4">
+            <form className="chat-input" onSubmit={handleSubmit}>
                 <input
                     type="text"
-                    className="flex-1 border rounded-lg p-2"
-                    placeholder="質問を入力してください..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Type your question..."
                 />
-                <button
-                    type="submit"
-                    className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg"
-                >
-                    送信
-                </button>
+                <button type="submit">Submit</button>
             </form>
         </div>
     );

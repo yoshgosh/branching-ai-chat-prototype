@@ -1,6 +1,6 @@
 import { runQuery } from '../../db';
 
-export async function handleDeleteAll() {
+export async function handleDelete() {
     try {
         // データベース内の全ての行を削除
         const result = await runQuery('DELETE FROM nodes');

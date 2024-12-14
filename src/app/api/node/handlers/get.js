@@ -11,14 +11,12 @@ export async function handleGet(id) {
         }
 
         // レスポンス用の形式に変換
-        const nodes = {
-            [node.id]: {
+        const nodes = [{
                 id: node.id,
-                parent_id: node.parent_id,
+                parentId: node.parent_id,
                 question: node.question,
                 answer: node.answer,
-            },
-        };
+            }];
 
         return { status: 200, body: { nodes } };
     } catch (error) {
