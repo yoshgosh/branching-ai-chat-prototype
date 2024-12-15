@@ -1,6 +1,6 @@
 import { insertQuery, getSingleRow, runQuery } from '../../db';
 import { answerByAI } from '../../utils/ai';
-const ANSWER_MODE = true;
+const ANSWER_MODE = false;
 
 export async function handlePost(head, question) {
     try {
@@ -36,21 +36,21 @@ export async function handlePost(head, question) {
             for (const row of rows.reverse()) { // 上位ノードから順に並べるため逆順に
                 messages.push({ role: "user", content: row.question });
                 messages.push({ role: "assistant", content: row.answer });
-                console.log(`Type of row.question: ${typeof row.question}`);
-                console.log(`Value of row.question: ${row.question}`);
+                // console.log(`Type of row.question: ${typeof row.question}`);
+                // console.log(`Value of row.question: ${row.question}`);
             }
         }
 
         // 新しい質問を追加
         messages.push({ role: "user", content: question });
-        console.log("messages: ", messages)
+        // console.log("messages: ", messages)
 
         // 回答生成
         let answer = "answer to "+question;
         if (ANSWER_MODE){
             answer = await answerByAI(messages);
         }
-        console.log("answer: ", answer)
+        // console.log("answer: ", answer)
 
         // 新しいノードを挿入
         const newId = await insertQuery(

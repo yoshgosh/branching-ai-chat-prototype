@@ -2,7 +2,7 @@ import { runQuery } from '../../db';
 
 export async function handleGet() {
     try {
-        const rows = await runQuery('SELECT * FROM nodes ORDER BY id DESC');
+        const rows = await runQuery('SELECT * FROM nodes ORDER BY id');
 
         const nodes = rows.map(row => ({
             id: row.id,

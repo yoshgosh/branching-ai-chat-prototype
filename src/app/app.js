@@ -4,11 +4,9 @@ import React, { useState, useEffect } from "react";
 import InteractiveTree from "./components/InteractiveTree";
 import Chat from "./components/Chat";
 import { fetchNodes, postNode } from "./services/api";
-// import { useNodes } from "./hooks/useNodes";
 
 const App = () => {
-    // FIXME: カスタムフックに引っ越し
-    // const { nodes, headNodeId, setHeadNodeId, addNode } = useNodes();
+    // FIXME: カスタムフックに引っ越ししたい
     const [nodes, setNodes] = useState(new Map());
     const [rootNodeId, setRootNodeId] = useState(null);
     const [latesetNodeId, setLatestNodeId] = useState(null);
@@ -26,32 +24,35 @@ const App = () => {
     };
 
     const attachChildIds = (nodes) => {
-        // 子ノード複数の場合は、最も新しいものを設定するため逆順
-        for (const node of Array.from(nodes.values()).reverse()) {
+        for (const node of nodes) {
             attachChildId(nodes, node);
         }
     };
 
     const assignGrid = (nodes) => {
-        // FIXME: waitingMapをwaitingNodesに改名し、occupiedLanesをパブリックに分離
+        // FIXME: waitingMapをwaitingNodesに改名し、occupiedLanesを分離すると良いかも
         const nodeIds = Array.from(nodes.keys());
         let currentLevel = 0;
         let waitingMap = new Map(); // 値をSetで管理
 
-        // 使用可能なレーンを取得する関数
+        // 使用するレーンを取得する関数
         const getLane = (nodeId) => {
             const lanes = waitingMap.get(nodeId) ?? new Set();
+
+            // 待ちリストに存在する場合
             if (lanes.size > 0) {
-                // 使用可能な最小のレーンを取得して削除
+                // 待機中の最小のレーンを取得して削除
                 const lane = Math.min(...lanes);
                 waitingMap.get(nodeId).delete(lane);
                 return lane;
             }
-
+            
+            // 存在しない場合
             // 現在占有されている全レーンを取得
             const occupiedLanes = new Set(
                 [...waitingMap.values()].flatMap((set) => [...set])
             );
+            // 空いている最小レーンを取得
             let lane = 0;
             while (occupiedLanes.has(lane)) {
                 lane++;
@@ -59,7 +60,7 @@ const App = () => {
             return lane;
         };
 
-        const setWaitingNodes = (node) => {
+        const setWaitingMap = (node) => {
             if (node.parentId) {
                 if (!waitingMap.has(node.parentId)) {
                     waitingMap.set(node.parentId, new Set());
@@ -68,7 +69,8 @@ const App = () => {
             }
         };
 
-        for (const nodeId of nodeIds) {
+        // 逆順（新しい順）でfor処理
+        for (const nodeId of nodeIds.reverse()) {
             const currentNode = nodes.get(nodeId);
 
             // レベルを割り当て
@@ -79,11 +81,12 @@ const App = () => {
             currentNode.lane = getLane(currentNode.id);
 
             // 待ちリストを更新
-            setWaitingNodes(currentNode);
+            setWaitingMap(currentNode);
         }
     };
 
     const getActiveNodes = (nodes, nodeId) => {
+        // FIXME: 前の状態のactiveNodesを参照し、変化の少ないように計算すうようにしたい（見つけたらそれ以前/以降は前の状態を写すような感じでいいかな）
         const activeNodeIds = [nodeId]; // 中心ノードを初期化
         let currentId = nodeId;
 
@@ -91,7 +94,7 @@ const App = () => {
         while (true) {
             const parentId = nodes.get(currentId)?.parentId;
             if (parentId == null) break; // nullまたはundefinedで終了
-            activeNodeIds.push(parentId); // 親を後に追加
+            activeNodeIds.unshift(parentId); // 親を先頭に追加
             currentId = parentId;
         }
 
@@ -100,7 +103,7 @@ const App = () => {
         while (true) {
             const childId = nodes.get(currentId)?.childId;
             if (childId == null) break; // nullまたはundefinedで終了
-            activeNodeIds.unshift(childId); // 子を先頭に追加
+            activeNodeIds.push(childId); // 子を後に追加
             currentId = childId;
         }
 
@@ -123,9 +126,9 @@ const App = () => {
             attachChildIds(newNodes);
             assignGrid(newNodes);
             setNodes(newNodes);
-            const newRootNodeId = nodesArray.at(-1).id || null;
+            const newRootNodeId = nodesArray.at(0).id || null;
             setRootNodeId(newRootNodeId);
-            const newLatestNodeId = nodesArray[0].id || null;
+            const newLatestNodeId = nodesArray.at(-1).id || null;
             setLatestNodeId(newLatestNodeId);
             if (newLatestNodeId !== null) {
                 const newActiveNodes = getActiveNodes(
