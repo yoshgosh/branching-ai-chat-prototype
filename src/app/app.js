@@ -6,14 +6,14 @@ import Chat from "./components/Chat";
 import { fetchNodes, postNode } from "./services/api";
 
 const App = () => {
-    // FIXME: カスタムフックに引っ越ししたい
+    // TODO: カスタムフックに引っ越ししたい
     const [nodes, setNodes] = useState(new Map());
     const [rootNodeId, setRootNodeId] = useState(null);
     const [latesetNodeId, setLatestNodeId] = useState(null);
     const [activeNodes, setActiveNodes] = useState(new Map());
     const [headNodeId, setHeadNodeId] = useState(null);
     const [nodeIdToActivate, setNodeIdToActivate] = useState(null);
-    const [visibleNodeId, setVisibleNodeId] = useState(null);
+    const [visibleNodeId, setVisibleNodeId] = useState([]);
 
     const attachChildId = (nodes, childNode) => {
         const parentId = childNode.parentId;
@@ -24,9 +24,11 @@ const App = () => {
     };
 
     const attachChildIds = (nodes) => {
-        for (const node of nodes) {
+        for (const node of nodes.values()) {
             attachChildId(nodes, node);
         }
+        console.log("attachChildIds");
+        console.log(nodes);
     };
 
     const assignGrid = (nodes) => {
@@ -43,7 +45,7 @@ const App = () => {
             if (lanes.size > 0) {
                 // 待機中の最小のレーンを取得して削除
                 const lane = Math.min(...lanes);
-                waitingMap.get(nodeId).delete(lane);
+                waitingMap.delete(nodeId);
                 return lane;
             }
             
@@ -73,7 +75,7 @@ const App = () => {
         for (const nodeId of nodeIds.reverse()) {
             const currentNode = nodes.get(nodeId);
 
-            // レベルを割り当て
+            // レベルを割り当てて更新
             currentNode.level = currentLevel;
             currentLevel++;
 
@@ -83,6 +85,7 @@ const App = () => {
             // 待ちリストを更新
             setWaitingMap(currentNode);
         }
+        console.log(nodes);
     };
 
     const getActiveNodes = (nodes, nodeId) => {
@@ -125,6 +128,7 @@ const App = () => {
             // childIdを付加
             attachChildIds(newNodes);
             assignGrid(newNodes);
+            console.log("initNodes",newNodes);
             setNodes(newNodes);
             const newRootNodeId = nodesArray.at(0).id || null;
             setRootNodeId(newRootNodeId);
@@ -136,17 +140,19 @@ const App = () => {
                     newLatestNodeId
                 );
                 setActiveNodes(newActiveNodes);
-                setHeadNodeId(newRootNodeId);
-                setNodeIdToActivate(newRootNodeId);
-                setVisibleNodeId(newRootNodeId);
+                setHeadNodeId(newLatestNodeId);
+                setNodeIdToActivate(newLatestNodeId);
+                setVisibleNodeId(newLatestNodeId);
             }
         };
         initNodes();
     }, []);
 
     const submitQestion = async (question) => {
-        const newNode = await postNode(headNodeId, question)[0];
-        const newNodes = new Map([[newNode.id, newNode], ...nodes]);
+        const nodesArray = await postNode(headNodeId, question);
+        const newNode = nodesArray[0];
+        console.log("submitQestion", newNode);
+        const newNodes = new Map([...nodes,[newNode.id, newNode]]);
         attachChildId(newNodes, newNode);
         assignGrid(newNodes);
         setNodes(newNodes);
@@ -159,12 +165,13 @@ const App = () => {
         setVisibleNodeId(newLatestNodeId);
     };
 
-    const activateNodes = async (nodeId) => {
+    const activateNodes = (nodeId) => {
         if (!activeNodes.has(nodeId)) {
             const newActiveNodes = getActiveNodes(nodes, nodeId);
-            await setActiveNodes(newActiveNodes); // activeNode更新後にnodeIdToActivateを更新する
+            setActiveNodes(newActiveNodes); // activeNode更新後にnodeIdToActivateを更新する
         }
         setNodeIdToActivate(nodeId);
+        console.log(activeNodes);
     };
 
     return (
@@ -175,7 +182,7 @@ const App = () => {
                     headNodeId={headNodeId}
                     visibleNodeId={visibleNodeId}
                     onNodeClick={activateNodes}
-                    onNodeDoubleClick={setHeadNodeId}
+                    onNodeClickWithShift={setHeadNodeId}
                 />
             </div>
             <div className="w-2/3">
@@ -185,6 +192,7 @@ const App = () => {
                     nodeIdToActivate={nodeIdToActivate}
                     onScroll={setVisibleNodeId}
                     onSubmit={submitQestion}
+                    onIconClick={setHeadNodeId}
                 />
             </div>
         </div>
