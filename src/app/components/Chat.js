@@ -30,6 +30,7 @@ const Chat = ({ activeNodes, headNodeId, nodeIdToActivate, onScroll, onSubmit })
                             node.id === nodeIdToActivate ? "activated-node" : ""
                         }`}
                         data-node-id={node.id}
+                        
                     >
                         <strong>{node.label || `Node ${node.id}`}</strong>
                         <p>{node.question || "No content available."}</p>

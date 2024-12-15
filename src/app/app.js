@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import InteractiveTree from "./components/InteractiveTree";
 import Chat from "./components/Chat";
 import { fetchNodes, postNode } from "./services/api";
@@ -22,11 +22,12 @@ const App = () => {
         if (!parentId) return;
         const parentNode = nodes.get(parentId);
         if (!parentNode) return;
-        parentNode.childId = childNode.id; 
+        parentNode.childId = childNode.id;
     };
-    
+
     const attachChildIds = (nodes) => {
-        for (const node of nodes.values()) {
+        // 子ノード複数の場合は、最も新しいものを設定するため逆順
+        for (const node of Array.from(nodes.values()).reverse()) {
             attachChildId(nodes, node);
         }
     };
@@ -36,7 +37,7 @@ const App = () => {
         const nodeIds = Array.from(nodes.keys());
         let currentLevel = 0;
         let waitingMap = new Map(); // 値をSetで管理
-    
+
         // 使用可能なレーンを取得する関数
         const getLane = (nodeId) => {
             const lanes = waitingMap.get(nodeId) ?? new Set();
@@ -46,7 +47,7 @@ const App = () => {
                 waitingMap.get(nodeId).delete(lane);
                 return lane;
             }
-    
+
             // 現在占有されている全レーンを取得
             const occupiedLanes = new Set(
                 [...waitingMap.values()].flatMap((set) => [...set])
@@ -59,27 +60,57 @@ const App = () => {
         };
 
         const setWaitingNodes = (node) => {
-            if (node.parentId){
+            if (node.parentId) {
                 if (!waitingMap.has(node.parentId)) {
                     waitingMap.set(node.parentId, new Set());
                 }
                 waitingMap.get(node.parentId).add(node.lane);
             }
-        }
+        };
 
         for (const nodeId of nodeIds) {
             const currentNode = nodes.get(nodeId);
-    
+
             // レベルを割り当て
             currentNode.level = currentLevel;
             currentLevel++;
-    
+
             // レーンを割り当て
             currentNode.lane = getLane(currentNode.id);
-    
+
             // 待ちリストを更新
             setWaitingNodes(currentNode);
         }
+    };
+
+    const getActiveNodes = (nodes, nodeId) => {
+        const activeNodeIds = [nodeId]; // 中心ノードを初期化
+        let currentId = nodeId;
+
+        // 親ノードをたどる
+        while (true) {
+            const parentId = nodes.get(currentId)?.parentId;
+            if (parentId == null) break; // nullまたはundefinedで終了
+            activeNodeIds.push(parentId); // 親を後に追加
+            currentId = parentId;
+        }
+
+        // 子ノードをたどる
+        currentId = nodeId;
+        while (true) {
+            const childId = nodes.get(currentId)?.childId;
+            if (childId == null) break; // nullまたはundefinedで終了
+            activeNodeIds.unshift(childId); // 子を先頭に追加
+            currentId = childId;
+        }
+
+        // 新しいMapを作成
+        const newActiveNodes = new Map();
+        for (const id of activeNodeIds) {
+            newActiveNodes.set(id, nodes.get(id));
+        }
+
+        return newActiveNodes;
     };
 
     // nodes初期化
@@ -93,11 +124,14 @@ const App = () => {
             assignGrid(newNodes);
             setNodes(newNodes);
             const newRootNodeId = nodesArray.at(-1).id || null;
-            setRootNodeId(newRootNodeId)
+            setRootNodeId(newRootNodeId);
             const newLatestNodeId = nodesArray[0].id || null;
-            setLatestNodeId(newLatestNodeId)
+            setLatestNodeId(newLatestNodeId);
             if (newLatestNodeId !== null) {
-                const newActiveNodes = getActiveNodes(newNodes, newLatestNodeId);
+                const newActiveNodes = getActiveNodes(
+                    newNodes,
+                    newLatestNodeId
+                );
                 setActiveNodes(newActiveNodes);
                 setHeadNodeId(newRootNodeId);
                 setNodeIdToActivate(newRootNodeId);
@@ -116,42 +150,12 @@ const App = () => {
         const newLatestNodeId = newNode.id;
         const newActiveNodes = getActiveNodes(newNodes, newLatestNodeId);
         setActiveNodes(newActiveNodes);
-        setLatestNodeId(newLatestNodeId)
-        setHeadNodeId(newLatestNodeId); 
-        setNodeIdToActivate(newLatestNodeId); 
-        setVisibleNodeId(newLatestNodeId); 
+        setLatestNodeId(newLatestNodeId);
+        setHeadNodeId(newLatestNodeId);
+        setNodeIdToActivate(newLatestNodeId);
+        setVisibleNodeId(newLatestNodeId);
     };
 
-    const getActiveNodes = (nodes, nodeId) => {
-        const activeNodeIds = [nodeId]; // 中心ノードを初期化
-        let currentId = nodeId;
-    
-        // 親ノードをたどる
-        while (true) {
-            const parentId = nodes.get(currentId)?.parentId;
-            if (parentId == null) break; // nullまたはundefinedで終了
-            activeNodeIds.push(parentId); // 親を後に追加
-            currentId = parentId;
-        }
-    
-        // 子ノードをたどる
-        currentId = nodeId;
-        while (true) {
-            const childId = nodes.get(currentId)?.childId;
-            if (childId == null) break; // nullまたはundefinedで終了
-            activeNodeIds.unshift(childId); // 子を先頭に追加
-            currentId = childId;
-        }
-    
-        // 新しいMapを作成
-        const newActiveNodes = new Map();
-        for (const id of activeNodeIds) {
-            newActiveNodes.set(id, nodes.get(id));
-        }
-    
-        return newActiveNodes;
-    };
-    
     const activateNodes = async (nodeId) => {
         if (!activeNodes.has(nodeId)) {
             const newActiveNodes = getActiveNodes(nodes, nodeId);
