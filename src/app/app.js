@@ -182,7 +182,7 @@ const App = () => {
                     headNodeId={headNodeId}
                     visibleNodeId={visibleNodeId}
                     onNodeClick={activateNodes}
-                    onNodeClickWithShift={setHeadNodeId}
+                    onNodeClickWithCMD={setHeadNodeId}
                 />
             </div>
             <div className="w-2/3">

@@ -1,6 +1,6 @@
 import { insertQuery, getSingleRow, runQuery } from '../../db';
 import { answerByAI } from '../../utils/ai';
-const ANSWER_MODE = false;
+const DUMMMY_ANSWER = false;
 
 export async function handlePost(head, question) {
     try {
@@ -46,8 +46,11 @@ export async function handlePost(head, question) {
         // console.log("messages: ", messages)
 
         // 回答生成
-        let answer = "answer to "+question;
-        if (ANSWER_MODE){
+        let answer = null;
+        
+        if (DUMMMY_ANSWER) {
+            answer = `Answer to "${question}"`;
+        } else {
             answer = await answerByAI(messages);
         }
         // console.log("answer: ", answer)

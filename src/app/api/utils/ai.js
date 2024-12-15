@@ -1,10 +1,13 @@
 import OpenAI from "openai";
+
 const DEFAULT_MODEL = process.env.OPENAI_DEFAULT_MODEL || "gpt-4o-mini";
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY, 
 });
 
 export async function answerByAI(messages, model=DEFAULT_MODEL){
+    console.log("ai", DEFAULT_MODEL);
+    
     try {
         const completion = await openai.chat.completions.create({
             model: model,

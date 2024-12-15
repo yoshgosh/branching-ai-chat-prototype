@@ -121,7 +121,7 @@ const ChatNodes = ({ activeNodes, headNodeId, nodeIdToActivate, onScroll, onIcon
                 if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
                     const id = parseInt(child.dataset.id, 10);
                     onScroll(id);
-                    break;
+                    break; 
                 }
             }
         }
@@ -180,7 +180,7 @@ const ChatInput = ({ onSubmit }) => {
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Type your message..."
+                placeholder="Send a message to AI"
                 style={{
                     flex: 1,
                     padding: "10px",
