@@ -99,7 +99,6 @@ const ChatNode = ({ node, headNodeId, onIconClick }) => {
 
 
 const ChatNodes = ({ activeNodes, headNodeId, nodeIdToActivate, onScroll, onIconClick }) => {
-    // TODO: なぜrefなのか調べる
     const containerRef = useRef(null);
 
     // nodeIdToActivate の変更時にスクロール
@@ -112,16 +111,20 @@ const ChatNodes = ({ activeNodes, headNodeId, nodeIdToActivate, onScroll, onIcon
         }
     }, [nodeIdToActivate]);
 
-
     const handleScroll = () => {
         if (containerRef.current) {
             const children = Array.from(containerRef.current.children);
-            for (const child of children) {
-                const rect = child.getBoundingClientRect();
-                if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
-                    const id = parseInt(child.dataset.id, 10);
-                    onScroll(id);
-                    break; 
+            
+            // activeNodes の順序で最初に一致するノードを判定
+            for (const node of activeNodes.values()) {
+                const child = containerRef.current.querySelector(`[data-id="${node.id}"]`);
+                if (child) {
+                    const rect = child.getBoundingClientRect();
+                    if (rect.top >= 0) { // 上辺がビューポート内にある条件
+                        console.log("Top-most visible child ID:", node.id);
+                        onScroll(node.id); // 一番上のノードの ID を渡す
+                        break;
+                    }
                 }
             }
         }
@@ -135,7 +138,7 @@ const ChatNodes = ({ activeNodes, headNodeId, nodeIdToActivate, onScroll, onIcon
                 overflowY: "auto",
                 flex: 1,
                 height: "100%",
-                maxHeight: "100%", // 必須: コンテナの高さを固定
+                maxHeight: "100%",
                 padding: "10px",
                 border: "0",
                 backgroundColor: "#fff",
@@ -144,15 +147,16 @@ const ChatNodes = ({ activeNodes, headNodeId, nodeIdToActivate, onScroll, onIcon
             {Array.from(activeNodes.values()).map((node) => (
                 <div key={node.id} data-id={node.id}>
                     <ChatNode
-                    node={node}
-                    headNodeId={headNodeId}
-                    onIconClick={onIconClick}
+                        node={node}
+                        headNodeId={headNodeId}
+                        onIconClick={onIconClick}
                     />
                 </div>
             ))}
         </div>
     );
 };
+
 const ChatInput = ({ onSubmit }) => {
     const [question, setQuestion] = useState("");
 
