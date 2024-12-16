@@ -58,6 +58,10 @@ const InteractiveTree = ({ nodes, visibleNodeId, headNodeId, onNodeClick, onNode
             source: node.parentId.toString(),
             target: node.id.toString(),
             type: "simplebezier",
+            style: {
+                stroke: "#dfdfdf", // 線の色
+                strokeWidth: "3px",   // 線の太さ
+            },
         }));
 
     // Node click handler
