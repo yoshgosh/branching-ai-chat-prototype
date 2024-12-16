@@ -120,7 +120,7 @@ const ChatNodes = ({ activeNodes, headNodeId, nodeIdToActivate, onScroll, onIcon
                 const child = containerRef.current.querySelector(`[data-id="${node.id}"]`);
                 if (child) {
                     const rect = child.getBoundingClientRect();
-                    if (rect.top >= 0) { // 上辺がビューポート内にある条件
+                    if (rect.top >= -30) { // 上辺がビューポート内にある条件 //なぜか0だとツリークリックと同期しないことあるため-30
                         console.log("Top-most visible child ID:", node.id);
                         onScroll(node.id); // 一番上のノードの ID を渡す
                         break;
