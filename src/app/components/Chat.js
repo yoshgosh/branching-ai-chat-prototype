@@ -54,8 +54,8 @@ const AssistantMessage = ({ node, mode, onIconClick }) => {
             <div
                 onClick={() => onIconClick && onIconClick(node.id)} // クリックイベント
                 style={{
-                    width: "32px",
-                    height: "32px",
+                    width: "30px",
+                    height: "30px",
                     borderRadius: "50%",
                     backgroundColor: "#dfdfdf",
                     display: "flex",
@@ -66,7 +66,15 @@ const AssistantMessage = ({ node, mode, onIconClick }) => {
                     border: border,
                 }}
             >
-                <span style={{ color: "#fff", fontSize: "16px" }}></span>
+                <span
+                    style={{
+                        fontSize: "12px", // Optional: Adjust font size as needed
+                        color: "black", // Optional: Adjust text color as needed
+                        fontWeight: "bold",
+                    }}
+                >
+                    {node.id}
+                </span>
             </div>
 
             {/* 四角の部分 */}
@@ -81,7 +89,9 @@ const AssistantMessage = ({ node, mode, onIconClick }) => {
                 }}
             >
                 {/* マークダウンのレンダリング */}
-                <ReactMarkdown className="markdown-content">{sanitizedMarkdown}</ReactMarkdown>
+                <ReactMarkdown className="markdown-content">
+                    {sanitizedMarkdown}
+                </ReactMarkdown>
             </div>
         </div>
     );
@@ -90,23 +100,45 @@ const AssistantMessage = ({ node, mode, onIconClick }) => {
 const ChatNode = ({ node, headNodeId, onIconClick }) => {
     const mode = node.id === headNodeId ? "head" : "default";
     return (
-        <div style={{ display: "flex", flexDirection: "column", margin: "5px 0" }}>
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                margin: "5px 0",
+            }}
+        >
             {node.question && <UserMessage node={node} />}
-            {node.answer && <AssistantMessage node={node} mode={mode} onIconClick={onIconClick}/>}
+            {node.answer && (
+                <AssistantMessage
+                    node={node}
+                    mode={mode}
+                    onIconClick={onIconClick}
+                />
+            )}
         </div>
     );
 };
 
-
-const ChatNodes = ({ activeNodes, headNodeId, nodeIdToActivate, onScroll, onIconClick }) => {
+const ChatNodes = ({
+    activeNodes,
+    headNodeId,
+    nodeIdToActivate,
+    onScroll,
+    onIconClick,
+}) => {
     const containerRef = useRef(null);
 
     // nodeIdToActivate の変更時にスクロール
     useEffect(() => {
         if (nodeIdToActivate !== null && containerRef.current) {
-            const targetNode = containerRef.current.querySelector(`[data-id="${nodeIdToActivate}"]`);
+            const targetNode = containerRef.current.querySelector(
+                `[data-id="${nodeIdToActivate}"]`
+            );
             if (targetNode) {
-                targetNode.scrollIntoView({ behavior: "smooth", block: "start" });
+                targetNode.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
             }
         }
     }, [nodeIdToActivate]);
@@ -114,13 +146,16 @@ const ChatNodes = ({ activeNodes, headNodeId, nodeIdToActivate, onScroll, onIcon
     const handleScroll = () => {
         if (containerRef.current) {
             const children = Array.from(containerRef.current.children);
-            
+
             // activeNodes の順序で最初に一致するノードを判定
             for (const node of activeNodes.values()) {
-                const child = containerRef.current.querySelector(`[data-id="${node.id}"]`);
+                const child = containerRef.current.querySelector(
+                    `[data-id="${node.id}"]`
+                );
                 if (child) {
                     const rect = child.getBoundingClientRect();
-                    if (rect.top >= -30) { // 上辺がビューポート内にある条件 //なぜか0だとツリークリックと同期しないことあるため-30
+                    if (rect.top >= -30) {
+                        // 上辺がビューポート内にある条件 //なぜか0だとツリークリックと同期しないことあるため-30
                         console.log("Top-most visible child ID:", node.id);
                         onScroll(node.id); // 一番上のノードの ID を渡す
                         break;
@@ -203,13 +238,19 @@ const ChatInput = ({ onSubmit }) => {
                     cursor: "pointer", // クリック可能なカーソル
                     margin: "0px 10px", // 四角との間に余白
                 }}
-            >
-            </button>
+            ></button>
         </form>
     );
 };
 
-const Chat = ({ activeNodes, headNodeId, nodeIdToActivate, onScroll, onSubmit, onIconClick}) => {
+const Chat = ({
+    activeNodes,
+    headNodeId,
+    nodeIdToActivate,
+    onScroll,
+    onSubmit,
+    onIconClick,
+}) => {
     return (
         <div
             style={{

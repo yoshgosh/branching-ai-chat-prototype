@@ -48,7 +48,7 @@ const App = () => {
                 waitingMap.delete(nodeId);
                 return lane;
             }
-            
+
             // 存在しない場合
             // 現在占有されている全レーンを取得
             const occupiedLanes = new Set(
@@ -90,6 +90,10 @@ const App = () => {
 
     const getActiveNodes = (nodes, nodeId) => {
         // FIXME: 前の状態のactiveNodesを参照し、変化の少ないように計算すうようにしたい（見つけたらそれ以前/以降は前の状態を写すような感じでいいかな）
+        const newActiveNodes = new Map();
+        if (!nodes.has(nodeId)){
+            return newActiveNodes;
+        }
         const activeNodeIds = [nodeId]; // 中心ノードを初期化
         let currentId = nodeId;
 
@@ -110,8 +114,7 @@ const App = () => {
             currentId = childId;
         }
 
-        // 新しいMapを作成
-        const newActiveNodes = new Map();
+        // Mapに反映
         for (const id of activeNodeIds) {
             newActiveNodes.set(id, nodes.get(id));
         }
@@ -123,43 +126,47 @@ const App = () => {
     useEffect(() => {
         const initNodes = async () => {
             const nodesArray = await fetchNodes();
+            if (!nodesArray || nodesArray.length === 0) {
+                console.log("no nodes");
+                return;
+            }
             // mapに変換
             const newNodes = new Map(nodesArray.map((node) => [node.id, node]));
             // childIdを付加
             attachChildIds(newNodes);
             assignGrid(newNodes);
-            console.log("initNodes",newNodes);
+            console.log("initNodes", newNodes);
             setNodes(newNodes);
             const newRootNodeId = nodesArray.at(0).id || null;
             setRootNodeId(newRootNodeId);
             const newLatestNodeId = nodesArray.at(-1).id || null;
             setLatestNodeId(newLatestNodeId);
-            if (newLatestNodeId !== null) {
-                const newActiveNodes = getActiveNodes(
-                    newNodes,
-                    newLatestNodeId
-                );
-                setActiveNodes(newActiveNodes);
-                setHeadNodeId(newLatestNodeId);
-                setNodeIdToActivate(newLatestNodeId);
-                setVisibleNodeId(newLatestNodeId);
-            }
+            const newActiveNodes = getActiveNodes(newNodes, newLatestNodeId);
+            setActiveNodes(newActiveNodes);
+            setHeadNodeId(newLatestNodeId);
+            setNodeIdToActivate(newLatestNodeId);
+            setVisibleNodeId(newLatestNodeId);
         };
         initNodes();
     }, []);
 
     const submitQestion = async (question) => {
         const nodesArray = await postNode(headNodeId, question);
+        if (!nodesArray || nodesArray.length === 0) {
+            console.log("no nodes");
+            return;
+        }
         const newNode = nodesArray[0];
-        console.log("submitQestion", newNode);
-        const newNodes = new Map([...nodes,[newNode.id, newNode]]);
+        const newNodes = new Map([...nodes, [newNode.id, newNode]]);
         attachChildId(newNodes, newNode);
         assignGrid(newNodes);
+        console.log("submitQestion", newNode);
         setNodes(newNodes);
         const newLatestNodeId = newNode.id;
+        setLatestNodeId(newLatestNodeId);
+        if (!rootNodeId && newLatestNodeId) setRootNodeId(newLatestNodeId); 
         const newActiveNodes = getActiveNodes(newNodes, newLatestNodeId);
         setActiveNodes(newActiveNodes);
-        setLatestNodeId(newLatestNodeId);
         setHeadNodeId(newLatestNodeId);
         setNodeIdToActivate(newLatestNodeId);
         setVisibleNodeId(newLatestNodeId);

@@ -6,7 +6,8 @@ export async function handlePost(head, question) {
     try {
         // messagesを構築
         let messages = [
-            { role: "system", content: "あなたは優秀なAIアシスタントです。" },
+            { role: "system", content: "あなたは優秀なAIアシスタントです。回答は1000文字以内で生成してください。" },
+            // { role: "system", content: "あなたは優秀なAIアシスタントです。" },
         ];
 
         if (head !== null) {
