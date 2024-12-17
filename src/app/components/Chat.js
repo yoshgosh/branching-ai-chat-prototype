@@ -139,6 +139,7 @@ const ChatNodes = ({
                     behavior: "smooth",
                     block: "start",
                 });
+                // TODO; onScroll(targetnodeid); // 非同期に注意
             }
         }
     }, [nodeIdToActivate]);
