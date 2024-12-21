@@ -125,51 +125,60 @@ const App = () => {
     // nodes初期化
     useEffect(() => {
         const initNodes = async () => {
-            const nodesArray = await fetchNodes();
+            try {
+                const nodesArray = await fetchNodes();
+                if (!nodesArray || nodesArray.length === 0) {
+                    console.log("No nodes available.");
+                    return;
+                }
+                // mapに変換
+                const newNodes = new Map(nodesArray.map((node) => [node.id, node]));
+                // childIdを付加
+                attachChildIds(newNodes);
+                assignGrid(newNodes);
+                console.log("initNodes", newNodes);
+                setNodes(newNodes);
+                const newRootNodeId = nodesArray.at(0)?.id || null;
+                setRootNodeId(newRootNodeId);
+                const newLatestNodeId = nodesArray.at(-1)?.id || null;
+                setLatestNodeId(newLatestNodeId);
+                const newActiveNodes = getActiveNodes(newNodes, newLatestNodeId);
+                setActiveNodes(newActiveNodes);
+                setHeadNodeId(newLatestNodeId);
+                setNodeIdToActivate(newLatestNodeId);
+                setVisibleNodeId(newLatestNodeId);
+            } catch (error) {
+                console.error("Failed to initialize nodes:", error.message);
+            }
+        };
+    
+        initNodes();
+    }, []);
+
+    const submitQestion = async (question) => {
+        try {
+            const nodesArray = await postNode(headNodeId, question);
             if (!nodesArray || nodesArray.length === 0) {
-                console.log("no nodes");
+                console.log("No nodes returned.");
                 return;
             }
-            // mapに変換
-            const newNodes = new Map(nodesArray.map((node) => [node.id, node]));
-            // childIdを付加
-            attachChildIds(newNodes);
+            const newNode = nodesArray[0];
+            const newNodes = new Map([...nodes, [newNode.id, newNode]]);
+            attachChildId(newNodes, newNode);
             assignGrid(newNodes);
-            console.log("initNodes", newNodes);
+            console.log("submitQestion", newNode);
             setNodes(newNodes);
-            const newRootNodeId = nodesArray.at(0).id || null;
-            setRootNodeId(newRootNodeId);
-            const newLatestNodeId = nodesArray.at(-1).id || null;
+            const newLatestNodeId = newNode.id;
             setLatestNodeId(newLatestNodeId);
+            if (!rootNodeId && newLatestNodeId) setRootNodeId(newLatestNodeId);
             const newActiveNodes = getActiveNodes(newNodes, newLatestNodeId);
             setActiveNodes(newActiveNodes);
             setHeadNodeId(newLatestNodeId);
             setNodeIdToActivate(newLatestNodeId);
             setVisibleNodeId(newLatestNodeId);
-        };
-        initNodes();
-    }, []);
-
-    const submitQestion = async (question) => {
-        const nodesArray = await postNode(headNodeId, question);
-        if (!nodesArray || nodesArray.length === 0) {
-            console.log("no nodes");
-            return;
+        } catch (error) {
+            console.error("Failed to submit question:", error.message);
         }
-        const newNode = nodesArray[0];
-        const newNodes = new Map([...nodes, [newNode.id, newNode]]);
-        attachChildId(newNodes, newNode);
-        assignGrid(newNodes);
-        console.log("submitQestion", newNode);
-        setNodes(newNodes);
-        const newLatestNodeId = newNode.id;
-        setLatestNodeId(newLatestNodeId);
-        if (!rootNodeId && newLatestNodeId) setRootNodeId(newLatestNodeId); 
-        const newActiveNodes = getActiveNodes(newNodes, newLatestNodeId);
-        setActiveNodes(newActiveNodes);
-        setHeadNodeId(newLatestNodeId);
-        setNodeIdToActivate(newLatestNodeId);
-        setVisibleNodeId(newLatestNodeId);
     };
 
     const activateNodes = (nodeId) => {
